@@ -1,7 +1,7 @@
 services:
   mqtt_broker:
     image: eclipse-mosquitto:2.0.21
-    container_name: mosquitto
+    container_name: mqtt_broker
     ports:
       - "1883:1883"
       - "9001:9001" # For MQTT over WebSockets
@@ -100,7 +100,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mqtt_data_publisher
+    container_name: mqtt_publisher
     command: /app/mqtt-publisher # Run the compiled MQTT publisher binary
     environment:
       MQTT_BROKER: tcp://mqtt_broker:1883
