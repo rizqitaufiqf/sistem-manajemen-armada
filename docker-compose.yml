@@ -1,0 +1,115 @@
+services:
+  mqtt_broker:
+    image: eclipse-mosquitto:2.0.21
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001" # For MQTT over WebSockets
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    restart: always
+
+  db:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: vehicle_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  api_service:
+    build:
+      context: . # Build from the root of the project
+      dockerfile: Dockerfile
+    container_name: api_service
+    command: /app/api # Run the compiled API binary
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: vehicle_db
+      API_PORT: 8080
+      GEOFENCE_LAT: -6.2526
+      GEOFENCE_LON: 106.8736
+      GEOFENCE_RADIUS: 50.0
+    depends_on:
+      - db
+    restart: always
+
+  mqtt_subscriber:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mqtt_subscriber
+    command: /app/mqtt-subscriber # Run the compiled MQTT subscriber binary
+    environment:
+      MQTT_BROKER: tcp://mqtt_broker:1883
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: vehicle_db
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      GEOFENCE_LAT: -6.2526
+      GEOFENCE_LON: 106.8736
+      GEOFENCE_RADIUS: 50.0
+    depends_on:
+      - mqtt_broker
+      - db
+      - rabbitmq
+    restart: always
+
+  rabbitmq_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rabbitmq_worker
+    command: /app/rabbitmq-worker # Run the compiled RabbitMQ worker binary
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+    depends_on:
+      - rabbitmq
+    restart: always
+
+  mqtt_publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mqtt_data_publisher
+    command: /app/mqtt-publisher # Run the compiled MQTT publisher binary
+    environment:
+      MQTT_BROKER: tcp://mqtt_broker:1883
+      VEHICLE_ID: B6789RTY
+      INITIAL_LAT: -6.2520
+      INITIAL_LON: 106.8730
+    depends_on:
+      - mqtt_broker
+    restart: on-failure # Restarts if it exits with an error
+
+volumes:
+  pgdata:
