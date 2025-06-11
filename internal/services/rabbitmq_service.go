@@ -21,13 +21,13 @@ func NewRabbitMQService(cfg *config.AppConfig) (*RabbitMQService, error) {
 	var conn *amqp.Connection
 	var err error
 
-	for i := range 10 {
+	for i := range 5 {
 		conn, err = amqp.Dial(connString)
 		if err == nil {
 			log.Println("Successfully connected to RabbitMQ!")
 			break
 		}
-		log.Printf("Waiting for RabbitMQ to be ready... (%d/10) %v\n", i+1, err)
+		log.Printf("Waiting for RabbitMQ to be ready... (%d/5) %v\n", i+1, err)
 		time.Sleep(5 * time.Second)
 	}
 
@@ -80,6 +80,16 @@ func NewRabbitMQService(cfg *config.AppConfig) (*RabbitMQService, error) {
 	return &RabbitMQService{conn: conn, channel: channel}, nil
 }
 
+func (s *RabbitMQService) Close() {
+	if s.channel != nil {
+		s.channel.Close()
+	}
+	if s.conn != nil {
+		s.conn.Close()
+	}
+	log.Println("RabbitMQ connection closed.")
+}
+
 func (s *RabbitMQService) PublishGeofenceEvent(event models.GeofenceEvent) error {
 	body, err := json.Marshal(event)
 	if err != nil {
@@ -121,14 +131,4 @@ func (s *RabbitMQService) StartGeofenceWorker() {
 			log.Printf("Received a geofence alert message: %s", d.Body)
 		}
 	}()
-}
-
-func (s *RabbitMQService) Close() {
-	if s.channel != nil {
-		s.channel.Close()
-	}
-	if s.conn != nil {
-		s.conn.Close()
-	}
-	log.Println("RabbitMQ connection closed.")
 }

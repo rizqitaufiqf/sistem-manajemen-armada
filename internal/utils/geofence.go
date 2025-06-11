@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"log"
 	"math"
 )
 
@@ -21,7 +20,7 @@ func IsInGeofence(lat1, lon1, lat2, lon2, radius float64) bool {
 	distance := 6371000 * c // Earth radius in meters
 
 	//? delete this
-	log.Print(distance)
+	// log.Printf("Distance => %.2f meters", distance)
 
 	return distance <= radius
 }

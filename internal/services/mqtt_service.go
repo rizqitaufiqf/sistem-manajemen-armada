@@ -24,7 +24,7 @@ func NewMQTTService(cfg *config.AppConfig, repo *repository.PostgreSQLRepository
 	options.SetPingTimeout(10 * time.Second)
 	options.SetCleanSession(true)
 	options.SetOnConnectHandler(func(client mqtt.Client) {
-		log.Println("Connected to MQTT broker!")
+		log.Println("Successfully Connected to MQTT broker!")
 	})
 	options.SetConnectionLostHandler(func(client mqtt.Client, err error) {
 		log.Printf("MQTT connection lost: %v", err)
@@ -44,10 +44,42 @@ func (s *MQTTService) Disconnect() {
 	}
 }
 
-func (s *MQTTService) geofenceCheck(location models.VehicleLocation) {
+func (s *MQTTService) SubscribeToLocationTopic() {
+	topic := "/armada/vehicle/+/location"
+	token := s.client.Subscribe(topic, 1, s.mqttHandler)
+
+	if token.Wait() && token.Error() != nil {
+		log.Fatalf("Failed to subscribe to topic: %v", token.Error())
+	}
+	log.Printf("Subscribed to MQTT topic: %s", topic)
+}
+
+func (s *MQTTService) mqttHandler(client mqtt.Client, message mqtt.Message) {
+	log.Printf("Received MQTT message on topic: %s", message.Topic())
+
+	var location models.VehicleLocation
+	if err := json.Unmarshal(message.Payload(), &location); err != nil {
+		log.Printf("Error unmarshalling MQTT payload: %v", err)
+		return
+	}
+
 	//? delete this
-	log.Printf("Vehicle ID: %s, Lat: %.6f, Lon: %.6f, Timestamp: %d",
-		location.VehicleID, location.Latitude, location.Longitude, location.Timestamp)
+	// log.Printf("MQTT Data => Vehicle ID: %s, Lat: %.6f, Lon: %.6f, Timestamp: %d",
+	// 	location.VehicleID, location.Latitude, location.Longitude, location.Timestamp)
+
+	//TODO: add validation here
+
+	// store data
+	if err := s.repo.InsertLocation(location); err != nil {
+		log.Printf("Error saving location to DB: %v", err)
+	} else {
+		log.Printf("Location for vehicle %s saved to DB.", location.VehicleID)
+	}
+
+	s.geofenceCheck(location)
+}
+
+func (s *MQTTService) geofenceCheck(location models.VehicleLocation) {
 	// Kantor Pusat TJ Latitude : -6.2526, Longitude: 106.8736
 	geofenceCenterLat := -6.2526
 	geofenceCenterLon := 106.8736
@@ -75,38 +107,4 @@ func (s *MQTTService) geofenceCheck(location models.VehicleLocation) {
 			log.Println("RabbitMQService not initialized, cannot publish geofence event.")
 		}
 	}
-}
-
-func (s *MQTTService) mqttHandler(client mqtt.Client, message mqtt.Message) {
-	log.Printf("Received MQTT message on topic: %s", message.Topic())
-
-	var location models.VehicleLocation
-	if err := json.Unmarshal(message.Payload(), &location); err != nil {
-		log.Printf("Error unmarshalling MQTT payload: %v", err)
-		return
-	}
-	location.Timestamp = time.Now().Unix()
-	// log.Printf("Vehicle ID: %s, Lat: %.6f, Lon: %.6f, Timestamp: %d",
-	// 	location.VehicleID, location.Latitude, location.Longitude, location.Timestamp)
-
-	//TODO: add validation here
-
-	// store data
-	if err := s.repo.InsertLocation(location); err != nil {
-		log.Printf("Error saving location to DB: %v", err)
-	} else {
-		log.Printf("Location for vehicle %s saved to DB.", location.VehicleID)
-	}
-
-	s.geofenceCheck(location)
-}
-
-func (s *MQTTService) SubscribeToLocationTopic() {
-	topic := "/armada/vehicle/+/location"
-	token := s.client.Subscribe(topic, 1, s.mqttHandler)
-
-	if token.Wait() && token.Error() != nil {
-		log.Fatalf("Failed to subscribe to topic: %v", token.Error())
-	}
-	log.Printf("Subscribed to MQTT topic: %s", topic)
 }

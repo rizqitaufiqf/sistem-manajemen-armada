@@ -32,7 +32,7 @@ func LoadConfig() *AppConfig {
 		PostgresPort: getEnv("POSTGRES_PORT", "5432"),
 		PostgresUser: getEnv("POSTGRES_USER", "user"),
 		PostgresPass: getEnv("POSTGRES_PASSWORD", "password"),
-		PostgresDB:   getEnv("POSTGRES_DB", "fleet_db"),
+		PostgresDB:   getEnv("POSTGRES_DB", "vehicle_db"),
 		MQTTHost:     getEnv("MQTT_BROKER", "tcp://mqtt_broker:1883"),
 		RabbitMQHost: getEnv("RABBITMQ_HOST", "rabbitmq"),
 		RabbitMQPort: getEnv("RABBITMQ_PORT", "5672"),

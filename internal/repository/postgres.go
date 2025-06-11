@@ -22,7 +22,7 @@ func NewPostgreSQLRepository(host, port, user, password, dbname string) (*Postgr
 	var err error
 
 	// Retry connection
-	for i := range 10 {
+	for i := range 5 {
 		db, err = sql.Open("postgres", connString)
 		if err == nil {
 			err = db.Ping()
@@ -31,7 +31,7 @@ func NewPostgreSQLRepository(host, port, user, password, dbname string) (*Postgr
 				break
 			}
 		}
-		log.Printf("Waiting for database to be ready... (%d/10) %v\n", i+1, err)
+		log.Printf("Waiting for database to be ready... (%d/5) %v\n", i+1, err)
 		time.Sleep(5 * time.Second)
 	}
 	if err != nil {
