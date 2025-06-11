@@ -19,6 +19,9 @@ func main() {
 	}
 	defer repo.DB.Close()
 
+	// Init API Service
+	// apiService := services.NewAPIService(repo)
+
 	router := gin.Default()
 
 	// Run the API server
