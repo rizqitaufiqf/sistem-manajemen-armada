@@ -20,7 +20,7 @@ docker-compose up --build -d
 You can run the MQTT publisher from within the container or from your local host. 
 > **Note:** For default, MQTT Publisher is already running in your docker app.
 
-To run QTT Publisher from your local host: 
+To run MQTT Publisher from your local host: 
 1. ensure the Mosquitto broker is accessible from outside docker 
 2. you must setup `.env`
 3. enable godenv in `cmd/mqtt_publisher/main.go`
