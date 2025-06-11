@@ -44,7 +44,7 @@ func (s *MQTTService) Disconnect() {
 	}
 }
 
-func (s *MQTTService) SubscribeToLocationTopic() {
+func (s *MQTTService) SubscribeToVehicleLocationTopic() {
 	topic := "/armada/vehicle/+/location"
 	token := s.client.Subscribe(topic, 1, s.mqttHandler)
 
@@ -57,46 +57,46 @@ func (s *MQTTService) SubscribeToLocationTopic() {
 func (s *MQTTService) mqttHandler(client mqtt.Client, message mqtt.Message) {
 	log.Printf("Received MQTT message on topic: %s", message.Topic())
 
-	var location models.VehicleLocation
-	if err := json.Unmarshal(message.Payload(), &location); err != nil {
+	var vehicleLocation models.VehicleLocation
+	if err := json.Unmarshal(message.Payload(), &vehicleLocation); err != nil {
 		log.Printf("Error unmarshalling MQTT payload: %v", err)
 		return
 	}
 
 	//? delete this
 	// log.Printf("MQTT Data => Vehicle ID: %s, Lat: %.6f, Lon: %.6f, Timestamp: %d",
-	// 	location.VehicleID, location.Latitude, location.Longitude, location.Timestamp)
+	// 	vehicleLocation.VehicleID, vehicleLocation.Latitude, vehicleLocation.Longitude, vehicleLocation.Timestamp)
 
 	//TODO: add validation here
 
 	// store data
-	if err := s.repo.InsertLocation(location); err != nil {
+	if err := s.repo.InsertVehicleLocation(vehicleLocation); err != nil {
 		log.Printf("Error saving location to DB: %v", err)
 	} else {
-		log.Printf("Location for vehicle %s saved to DB.", location.VehicleID)
+		log.Printf("Location for vehicle %s saved to DB.", vehicleLocation.VehicleID)
 	}
 
-	s.geofenceCheck(location)
+	s.geofenceCheck(vehicleLocation)
 }
 
-func (s *MQTTService) geofenceCheck(location models.VehicleLocation) {
+func (s *MQTTService) geofenceCheck(vehicleLocation models.VehicleLocation) {
 	// Kantor Pusat TJ Latitude : -6.2526, Longitude: 106.8736
 	geofenceCenterLat := -6.2526
 	geofenceCenterLon := 106.8736
 	radiusMeters := 50.0 // 50 meters
 
-	if utils.IsInGeofence(location.Latitude, location.Longitude, geofenceCenterLat, geofenceCenterLon, radiusMeters) {
-		log.Printf("Vehicle %s entered geofence!", location.VehicleID)
+	if utils.IsInGeofence(vehicleLocation.Latitude, vehicleLocation.Longitude, geofenceCenterLat, geofenceCenterLon, radiusMeters) {
+		log.Printf("Vehicle %s entered geofence!", vehicleLocation.VehicleID)
 
 		eventPayload :=
 			models.GeofenceEvent{
-				VehicleID: location.VehicleID,
+				VehicleID: vehicleLocation.VehicleID,
 				Event:     "geofence_entry",
 				Location: models.Location{
-					Latitude:  location.Latitude,
-					Longitude: location.Longitude,
+					Latitude:  vehicleLocation.Latitude,
+					Longitude: vehicleLocation.Longitude,
 				},
-				Timestamp: location.Timestamp,
+				Timestamp: vehicleLocation.Timestamp,
 			}
 
 		if s.rabbitmqService != nil {

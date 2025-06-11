@@ -63,11 +63,11 @@ func (r *PostgreSQLRepository) createTable() error {
 	return nil
 }
 
-func (r *PostgreSQLRepository) InsertLocation(loc models.VehicleLocation) error {
+func (r *PostgreSQLRepository) InsertVehicleLocation(loc models.VehicleLocation) error {
 	query := `INSERT INTO vehicle_locations (vehicle_id, latitude, longitude, timestamp) VALUES ($1, $2, $3, $4)`
 	_, err := r.DB.Exec(query, loc.VehicleID, loc.Latitude, loc.Longitude, loc.Timestamp)
 	if err != nil {
-		return fmt.Errorf("failed to insert location: %w", err)
+		return fmt.Errorf("failed to insert vehicle location: %w", err)
 	}
 	return nil
 }
