@@ -30,6 +30,7 @@ func main() {
 	// Init MQTT Service
 	mqttService := services.NewMQTTService(cfg, repo, rabbitMQService)
 	defer mqttService.Disconnect()
+	mqttService.SubscribeToLocationTopic()
 
 	log.Println("MQTT Subscriber started. Waiting for messages...")
 	// Keep the subscriber running indefinitely

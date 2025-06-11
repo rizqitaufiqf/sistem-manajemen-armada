@@ -1,8 +1,10 @@
 package services
 
 import (
+	"encoding/json"
 	"log"
 	"sistem-manajemen-armada/internal/config"
+	"sistem-manajemen-armada/internal/models"
 	"sistem-manajemen-armada/internal/repository"
 	"time"
 
@@ -16,6 +18,7 @@ type MQTTService struct {
 }
 
 func NewMQTTService(cfg *config.AppConfig, repo *repository.PostgreSQLRepository, rabbitMQService *RabbitMQService) *MQTTService {
+	log.Printf(cfg.MQTTHost)
 	options := mqtt.NewClientOptions().AddBroker(cfg.MQTTHost).SetClientID("backend_subscriber")
 	options.SetKeepAlive(60 * time.Second)
 	options.SetPingTimeout(10 * time.Second)
@@ -39,4 +42,31 @@ func (s *MQTTService) Disconnect() {
 		s.client.Disconnect(250)
 		log.Println("MQTT client disconnected.")
 	}
+}
+
+func (s *MQTTService) mqttHandler(client mqtt.Client, message mqtt.Message) {
+	log.Printf("Received MQTT message on topic: %s", message.Topic())
+
+	var location models.VehicleLocation
+	if err := json.Unmarshal(message.Payload(), &location); err != nil {
+		log.Printf("Error unmarshalling MQTT payload: %v", err)
+		return
+	}
+	location.Timestamp = time.Now().Unix()
+
+	// log.Printf("Vehicle ID: %s, Lat: %.6f, Lon: %.6f, Timestamp: %d",
+	// 	location.VehicleID, location.Latitude, location.Longitude, location.Timestamp)
+
+	//TODO: add validation here
+}
+
+func (s *MQTTService) SubscribeToLocationTopic() {
+	topic := "/armada/vehicle/+/location"
+	token := s.client.Subscribe(topic, 1, s.mqttHandler)
+
+	if token.Wait() && token.Error() != nil {
+		log.Fatalf("Failed to subscribe to topic: %v", token.Error())
+	}
+	log.Printf("Subscribed to MQTT topic: %s", topic)
+
 }
