@@ -68,5 +68,10 @@ func (s *APIService) GetVehicleLocationHistory(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
+	if len(locations) == 0 {
+		c.JSON(http.StatusOK, []interface{}{})
+		return
+	}
+
 	c.JSON(http.StatusOK, locations)
 }
