@@ -20,10 +20,17 @@ docker-compose up --build -d
 You can run the MQTT publisher from within the container or from your local host. 
 > **Note:** For default, MQTT Publisher is already running in your docker app.
 
-To run from your local host (ensure the Mosquitto broker is accessible from outside docker):
+To run QTT Publisher from your local host: 
+1. ensure the Mosquitto broker is accessible from outside docker 
+2. you must setup `.env`
+3. enable godenv in `cmd/mqtt_publisher/main.go`
+```
+godotenv.Load()
+```
+4. run command below:
 ```bash
-cd  cmd/mqtt_publisher
-go  run  main.go
+cd cmd/mqtt_publisher
+go run main.go
 ```
 4.  **Monitor your MQTT Subscriber and Your RabbitMQ Worker**
 ##### MQTT Subscriber
@@ -49,5 +56,6 @@ Import file `sistem-manajemen-armada.postman_collection.json` file into your Pos
 **Parameters:**
 - `start`: Start timestamp (UNIX epoch time)
 - `end`: End timestamp (UNIX epoch time)
+
 **Example:** `http://localhost:8080/vehicles/B1234XYZ/history?start=1715000000&end=1715009999` (Adjust timestamps according to your sent data)
 > **Note:** You can find working examples with sample data in the imported Postman collection. Adjust the timestamps according to your test data.
