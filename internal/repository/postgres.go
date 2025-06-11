@@ -84,3 +84,26 @@ func (r *PostgreSQLRepository) GetLastVehicleLocation(vehicleID string) (models.
 	}
 	return vehicleLocation, nil
 }
+
+func (r *PostgreSQLRepository) GetVehicleLocationHistory(vehicleID string, start, end int64) ([]models.VehicleLocation, error) {
+	var vehicleLocations []models.VehicleLocation
+	query := `SELECT vehicle_id, latitude, longitude, timestamp FROM vehicle_locations WHERE vehicle_id = $1 AND timestamp >= $2 AND timestamp <= $3 ORDER BY timestamp ASC`
+	rows, err := r.DB.Query(query, vehicleID, start, end)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get vehicle location history %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var vehicleLocation models.VehicleLocation
+		if err := rows.Scan(&vehicleLocation.VehicleID, &vehicleLocation.Latitude, &vehicleLocation.Longitude, &vehicleLocation.Timestamp); err != nil {
+			return nil, fmt.Errorf("failed to scan vehicle location hystory row: %w", err)
+		}
+		vehicleLocations = append(vehicleLocations, vehicleLocation)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during history iteration: %w", err)
+	}
+
+	return vehicleLocations, nil
+}

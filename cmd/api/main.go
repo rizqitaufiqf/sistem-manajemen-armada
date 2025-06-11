@@ -25,6 +25,7 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/vehicles/:vehicle_id/location", apiService.GetLastVehicleLocation)
+	router.GET("/vehicles/:vehicle_id/history", apiService.GetVehicleLocationHistory)
 
 	// Run the API server
 	log.Printf("API service starting on port %s", cfg.APIPort)
