@@ -31,8 +31,7 @@ godotenv.Load()
 ```
 4. run command below:
 ```bash
-cd cmd/mqtt_publisher
-go run main.go
+go run cmd/mqtt_publisher/main.go
 ```
 4.  **Monitor your MQTT Subscriber and Your RabbitMQ Worker**
 ##### MQTT Subscriber
@@ -51,6 +50,7 @@ Import file `sistem-manajemen-armada.postman_collection.json` file into your Pos
 #### Get a vehicle last location:
 **Request:**
 `GET http://localhost:8080/vehicles/:vehicle_id/location`
+
 **Example:** `http://localhost:8080/vehicles/B1234XYZ/location`
 #### Get vehicle location history within a specific time range:
 **Request:**
