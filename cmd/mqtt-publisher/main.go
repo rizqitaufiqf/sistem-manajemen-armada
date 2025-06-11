@@ -79,7 +79,7 @@ func main() {
 			continue
 		}
 
-		topic := fmt.Sprintf("/armada/vehicle/%s/location", vehicleID)
+		topic := fmt.Sprintf("/fleet/vehicle/%s/location", vehicleID)
 		token := client.Publish(topic, 1, false, jsonData)
 		token.Wait()
 		if token.Error() != nil {

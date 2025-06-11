@@ -47,7 +47,7 @@ func (s *MQTTService) Disconnect() {
 }
 
 func (s *MQTTService) SubscribeToVehicleLocationTopic() {
-	topic := "/armada/vehicle/+/location"
+	topic := "/fleet/vehicle/+/location"
 	token := s.client.Subscribe(topic, 1, s.mqttHandler)
 
 	if token.Wait() && token.Error() != nil {
