@@ -4,6 +4,7 @@ import (
 	"log"
 	"sistem-manajemen-armada/internal/config"
 	"sistem-manajemen-armada/internal/repository"
+	"sistem-manajemen-armada/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -20,9 +21,10 @@ func main() {
 	defer repo.DB.Close()
 
 	// Init API Service
-	// apiService := services.NewAPIService(repo)
+	apiService := services.NewAPIService(repo)
 
 	router := gin.Default()
+	router.GET("/vehicles/:vehicle_id/location", apiService.GetLastVehicleLocation)
 
 	// Run the API server
 	log.Printf("API service starting on port %s", cfg.APIPort)

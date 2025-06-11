@@ -63,11 +63,24 @@ func (r *PostgreSQLRepository) createTable() error {
 	return nil
 }
 
-func (r *PostgreSQLRepository) InsertVehicleLocation(loc models.VehicleLocation) error {
+func (r *PostgreSQLRepository) InsertVehicleLocation(vehicleLocation models.VehicleLocation) error {
 	query := `INSERT INTO vehicle_locations (vehicle_id, latitude, longitude, timestamp) VALUES ($1, $2, $3, $4)`
-	_, err := r.DB.Exec(query, loc.VehicleID, loc.Latitude, loc.Longitude, loc.Timestamp)
+	_, err := r.DB.Exec(query, vehicleLocation.VehicleID, vehicleLocation.Latitude, vehicleLocation.Longitude, vehicleLocation.Timestamp)
 	if err != nil {
 		return fmt.Errorf("failed to insert vehicle location: %w", err)
 	}
 	return nil
+}
+
+func (r *PostgreSQLRepository) GetLastVehicleLocation(vehicleID string) (models.VehicleLocation, error) {
+	var vehicleLocation models.VehicleLocation
+	query := `SELECT vehicle_id, latitude, longitude, timestamp FROM vehicle_locations WHERE vehicle_id = $1 ORDER BY timestamp DESC LIMIT 1`
+	row := r.DB.QueryRow(query, vehicleID)
+	err := row.Scan(&vehicleLocation.VehicleID, &vehicleLocation.Latitude, &vehicleLocation.Longitude, &vehicleLocation.Timestamp)
+	if err == sql.ErrNoRows {
+		return vehicleLocation, fmt.Errorf("no location found for vehicle %s", vehicleID)
+	} else if err != nil {
+		return vehicleLocation, fmt.Errorf("failed to get last location: %w", err)
+	}
+	return vehicleLocation, nil
 }
