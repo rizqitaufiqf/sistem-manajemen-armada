@@ -4,12 +4,11 @@ import (
 	"log"
 	"sistem-manajemen-armada/internal/config"
 	"sistem-manajemen-armada/internal/services"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
+	// enable this if you want use from local
+	// godotenv.Load()
 	cfg := config.LoadConfig()
 
 	rabbitMQService, err := services.NewRabbitMQService(cfg)

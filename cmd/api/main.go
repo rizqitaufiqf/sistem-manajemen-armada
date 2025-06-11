@@ -7,11 +7,11 @@ import (
 	"sistem-manajemen-armada/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
+	// enable this if you want use from local
+	// godotenv.Load()
 	cfg := config.LoadConfig()
 
 	repo, err := repository.NewPostgreSQLRepository(cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUser, cfg.PostgresPass, cfg.PostgresDB)

@@ -5,12 +5,11 @@ import (
 	"sistem-manajemen-armada/internal/config"
 	"sistem-manajemen-armada/internal/repository"
 	"sistem-manajemen-armada/internal/services"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
+	// enable this if you want use from local
+	// godotenv.Load()
 	cfg := config.LoadConfig()
 
 	// Initialize Database Repository

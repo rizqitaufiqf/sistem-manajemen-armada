@@ -11,11 +11,11 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
+	// enable this if you want use from local
+	// godotenv.Load()
 	cfg := config.LoadConfig()
 
 	vehicleID := os.Getenv("VEHICLE_ID")
