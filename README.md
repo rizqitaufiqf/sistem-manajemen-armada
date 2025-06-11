@@ -14,7 +14,7 @@ cd sistem-manajemen-armada
 ```
 2.  **Build and Run Services with Docker Compose:**
 ```bash
-docker-compose up --build -d
+docker-compose up -d
 ```
 3.  **Run MQTT Publisher:**
 You can run the MQTT publisher from within the container or from your local host. 
