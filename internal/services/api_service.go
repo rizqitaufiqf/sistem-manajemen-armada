@@ -69,7 +69,7 @@ func (s *APIService) GetVehicleLocationHistory(c *gin.Context) {
 	}
 
 	if len(locations) == 0 {
-		c.JSON(http.StatusOK, []interface{}{})
+		c.JSON(http.StatusOK, []any{})
 		return
 	}
 
