@@ -6,6 +6,7 @@ import (
 	"sistem-manajemen-armada/internal/config"
 	"sistem-manajemen-armada/internal/models"
 	"sistem-manajemen-armada/internal/repository"
+	"sistem-manajemen-armada/internal/utils"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -18,7 +19,6 @@ type MQTTService struct {
 }
 
 func NewMQTTService(cfg *config.AppConfig, repo *repository.PostgreSQLRepository, rabbitMQService *RabbitMQService) *MQTTService {
-	log.Printf(cfg.MQTTHost)
 	options := mqtt.NewClientOptions().AddBroker(cfg.MQTTHost).SetClientID("backend_subscriber")
 	options.SetKeepAlive(60 * time.Second)
 	options.SetPingTimeout(10 * time.Second)
@@ -44,6 +44,20 @@ func (s *MQTTService) Disconnect() {
 	}
 }
 
+func (s *MQTTService) geofenceCheck(location models.VehicleLocation) {
+	//? delete this
+	log.Printf("Vehicle ID: %s, Lat: %.6f, Lon: %.6f, Timestamp: %d",
+		location.VehicleID, location.Latitude, location.Longitude, location.Timestamp)
+	// Kantor Pusat TJ Latitude : -6.2526, Longitude: 106.8736
+	geofenceCenterLat := -6.2526
+	geofenceCenterLon := 106.8736
+	radiusMeters := 50.0 // 50 meters
+
+	if utils.IsInGeofence(location.Latitude, location.Longitude, geofenceCenterLat, geofenceCenterLon, radiusMeters) {
+		log.Printf("Vehicle %s entered geofence!", location.VehicleID)
+	}
+}
+
 func (s *MQTTService) mqttHandler(client mqtt.Client, message mqtt.Message) {
 	log.Printf("Received MQTT message on topic: %s", message.Topic())
 
@@ -53,11 +67,19 @@ func (s *MQTTService) mqttHandler(client mqtt.Client, message mqtt.Message) {
 		return
 	}
 	location.Timestamp = time.Now().Unix()
-
 	// log.Printf("Vehicle ID: %s, Lat: %.6f, Lon: %.6f, Timestamp: %d",
 	// 	location.VehicleID, location.Latitude, location.Longitude, location.Timestamp)
 
 	//TODO: add validation here
+
+	// store data
+	if err := s.repo.InsertLocation(location); err != nil {
+		log.Printf("Error saving location to DB: %v", err)
+	} else {
+		log.Printf("Location for vehicle %s saved to DB.", location.VehicleID)
+	}
+
+	s.geofenceCheck(location)
 }
 
 func (s *MQTTService) SubscribeToLocationTopic() {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sistem-manajemen-armada/internal/models"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -59,5 +60,14 @@ func (r *PostgreSQLRepository) createTable() error {
 		return fmt.Errorf("error creating table: %w", err)
 	}
 	log.Println("Table 'vehicle_locations' checked/created successfully.")
+	return nil
+}
+
+func (r *PostgreSQLRepository) InsertLocation(loc models.VehicleLocation) error {
+	query := `INSERT INTO vehicle_locations (vehicle_id, latitude, longitude, timestamp) VALUES ($1, $2, $3, $4)`
+	_, err := r.DB.Exec(query, loc.VehicleID, loc.Latitude, loc.Longitude, loc.Timestamp)
+	if err != nil {
+		return fmt.Errorf("failed to insert location: %w", err)
+	}
 	return nil
 }
