@@ -24,8 +24,8 @@ To run MQTT Publisher from your local host:
 1. ensure the Mosquitto broker is accessible from outside docker 
 2. Set up your environment configuration:
     - rename `env.example` to `.env` 
-    - Adjust the credentials and other configuration values as needed inside the .env file
-3. enable godenv in `cmd/mqtt_publisher/main.go`
+    - Adjust the credentials and other configuration values as needed inside the `.env` file
+3. enable `godenv` in `cmd/mqtt_publisher/main.go`
 ```
 godotenv.Load()
 ```
