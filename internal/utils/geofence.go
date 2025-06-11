@@ -4,6 +4,8 @@ import (
 	"math"
 )
 
+const earthRadius = 6371000
+
 // IsInGeofence checks if a point is within a radius (in meters) of a center point
 func IsInGeofence(lat1, lon1, lat2, lon2, radius float64) bool {
 	// Convert degrees to radians
@@ -17,7 +19,7 @@ func IsInGeofence(lat1, lon1, lat2, lon2, radius float64) bool {
 	dLon := lon2Rad - lon1Rad
 	a := math.Pow(math.Sin(dLat/2), 2) + math.Cos(lat1Rad)*math.Cos(lat2Rad)*math.Pow(math.Sin(dLon/2), 2)
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	distance := 6371000 * c // Earth radius in meters
+	distance := earthRadius * c
 
 	//? delete this
 	// log.Printf("Distance => %.2f meters", distance)
