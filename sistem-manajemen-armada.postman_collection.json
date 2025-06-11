@@ -10,7 +10,20 @@
 			"name": "Get Last Location",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/vehicles/B6789RTY/location",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"vehicles",
+						"B6789RTY",
+						"location"
+					]
+				}
 			},
 			"response": [
 				{
