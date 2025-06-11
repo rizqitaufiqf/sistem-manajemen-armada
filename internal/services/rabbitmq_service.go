@@ -42,13 +42,13 @@ func NewRabbitMQService(cfg *config.AppConfig) (*RabbitMQService, error) {
 
 	// Declare exchange and queue
 	err = channel.ExchangeDeclare(
-		"armada.events", // name
-		"topic",         // type
-		true,            // durable
-		false,           // auto-deleted
-		false,           // internal
-		false,           // no-wait
-		nil,             // arguments
+		"fleet.events", // name
+		"topic",        // type
+		true,           // durable
+		false,          // auto-deleted
+		false,          // internal
+		false,          // no-wait
+		nil,            // arguments
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to declare an exchange %w", err)
@@ -69,7 +69,7 @@ func NewRabbitMQService(cfg *config.AppConfig) (*RabbitMQService, error) {
 	err = channel.QueueBind(
 		"geofence_alerts", // queue name
 		"geofence_entry",  // routing key (could be specific event types)
-		"armada.events",   // exchange
+		"fleet.events",    // exchange
 		false,
 		nil,
 	)
@@ -97,7 +97,7 @@ func (s *RabbitMQService) PublishGeofenceEvent(event models.GeofenceEvent) error
 	}
 
 	err = s.channel.Publish(
-		"armada.events",  // exchange
+		"fleet.events",   // exchange
 		"geofence_entry", // routing key
 		false,            // mandatory
 		false,            // immediate
