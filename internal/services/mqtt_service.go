@@ -7,6 +7,7 @@ import (
 	"sistem-manajemen-armada/internal/models"
 	"sistem-manajemen-armada/internal/repository"
 	"sistem-manajemen-armada/internal/utils"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -67,7 +68,11 @@ func (s *MQTTService) mqttHandler(client mqtt.Client, message mqtt.Message) {
 	// log.Printf("MQTT Data => Vehicle ID: %s, Lat: %.6f, Lon: %.6f, Timestamp: %d",
 	// 	vehicleLocation.VehicleID, vehicleLocation.Latitude, vehicleLocation.Longitude, vehicleLocation.Timestamp)
 
-	//TODO: add validation here
+	validationErrors := vehicleLocation.ValidateVehicleLocationData()
+	if len(validationErrors) > 0 {
+		log.Printf("Error saving location to DB: %s", strings.Join(validationErrors, ", "))
+		return
+	}
 
 	// store data
 	if err := s.repo.InsertVehicleLocation(vehicleLocation); err != nil {

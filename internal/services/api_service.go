@@ -3,6 +3,7 @@ package services
 import (
 	"net/http"
 	"sistem-manajemen-armada/internal/repository"
+	"sistem-manajemen-armada/internal/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -18,8 +19,8 @@ func NewAPIService(repo *repository.PostgreSQLRepository) *APIService {
 
 func (s *APIService) GetLastVehicleLocation(c *gin.Context) {
 	vehicleID := c.Param("vehicle_id")
-	if vehicleID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "vehicle_id is required"})
+	if vehicleID == "" || !utils.IsValidVehicleID(vehicleID) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle_id"})
 		return
 	}
 
@@ -39,15 +40,15 @@ func (s *APIService) GetLastVehicleLocation(c *gin.Context) {
 
 func (s *APIService) GetVehicleLocationHistory(c *gin.Context) {
 	vehicleID := c.Param("vehicle_id")
-	if vehicleID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "vehicle_id is required"})
+	if vehicleID == "" || !utils.IsValidVehicleID(vehicleID) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle_id"})
 		return
 	}
 
 	timeStart := c.Query("start")
 	timeEnd := c.Query("end")
 
-	if timeStart == "" || timeEnd == "" {
+	if timeStart == "" && timeEnd == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "start and end timestamps are required"})
 		return
 	}
@@ -66,6 +67,7 @@ func (s *APIService) GetVehicleLocationHistory(c *gin.Context) {
 	locations, err := s.repo.GetVehicleLocationHistory(vehicleID, start, end)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	if len(locations) == 0 {
