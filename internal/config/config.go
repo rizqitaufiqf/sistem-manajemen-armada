@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 )
 
 type AppConfig struct {
@@ -24,6 +25,10 @@ type AppConfig struct {
 
 	// API
 	APIPort string
+
+	GeofenceLat    float64
+	GeofenceLon    float64
+	GeofenceRadius float64
 }
 
 func LoadConfig() *AppConfig {
@@ -40,6 +45,28 @@ func LoadConfig() *AppConfig {
 		RabbitMQPass: getEnv("RABBITMQ_PASS", "guest"),
 		APIPort:      getEnv("API_PORT", "8080"),
 	}
+
+	geofenceLatStr := getEnv("GEOFENCE_LAT", "-6.2526")
+	geofenceLonStr := getEnv("GEOFENCE_LON", "106.8736")
+	geofenceRadiusStr := getEnv("GEOFENCE_RADIUS", "50.0")
+
+	lat, err := strconv.ParseFloat(geofenceLatStr, 64)
+	if err != nil {
+		log.Fatalf("Error parsing GEOFENCE_LAT '%s' to float64: %v", geofenceLatStr, err)
+	}
+	cfg.GeofenceLat = lat
+
+	lon, err := strconv.ParseFloat(geofenceLonStr, 64)
+	if err != nil {
+		log.Fatalf("Error parsing GEOFENCE_LON '%s' to float64: %v", geofenceLonStr, err)
+	}
+	cfg.GeofenceLon = lon
+
+	radius, err := strconv.ParseFloat(geofenceRadiusStr, 64)
+	if err != nil {
+		log.Fatalf("Error parsing GEOFENCE_RADIUS '%s' to float64: %v", geofenceRadiusStr, err)
+	}
+	cfg.GeofenceRadius = radius
 
 	log.Println("Configuration loaded.")
 	return cfg

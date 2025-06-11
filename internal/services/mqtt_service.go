@@ -17,6 +17,7 @@ type MQTTService struct {
 	client          mqtt.Client
 	repo            *repository.PostgreSQLRepository
 	rabbitmqService *RabbitMQService
+	cfg             *config.AppConfig
 }
 
 func NewMQTTService(cfg *config.AppConfig, repo *repository.PostgreSQLRepository, rabbitMQService *RabbitMQService) *MQTTService {
@@ -35,7 +36,7 @@ func NewMQTTService(cfg *config.AppConfig, repo *repository.PostgreSQLRepository
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatalf("Failed to connect to MQTT broker: %v", token.Error())
 	}
-	return &MQTTService{client: client, repo: repo, rabbitmqService: rabbitMQService}
+	return &MQTTService{client: client, repo: repo, rabbitmqService: rabbitMQService, cfg: cfg}
 }
 
 func (s *MQTTService) Disconnect() {
@@ -86,9 +87,9 @@ func (s *MQTTService) mqttHandler(client mqtt.Client, message mqtt.Message) {
 
 func (s *MQTTService) geofenceCheck(vehicleLocation models.VehicleLocation) {
 	// Kantor Pusat TJ Latitude : -6.2526, Longitude: 106.8736
-	geofenceCenterLat := -6.2526
-	geofenceCenterLon := 106.8736
-	radiusMeters := 50.0 // 50 meters
+	geofenceCenterLat := s.cfg.GeofenceLat
+	geofenceCenterLon := s.cfg.GeofenceLon
+	radiusMeters := s.cfg.GeofenceRadius
 
 	if utils.IsInGeofence(vehicleLocation.Latitude, vehicleLocation.Longitude, geofenceCenterLat, geofenceCenterLon, radiusMeters) {
 		log.Printf("Vehicle %s entered geofence!", vehicleLocation.VehicleID)
