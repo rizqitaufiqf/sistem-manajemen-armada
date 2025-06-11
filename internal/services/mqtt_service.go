@@ -55,6 +55,25 @@ func (s *MQTTService) geofenceCheck(location models.VehicleLocation) {
 
 	if utils.IsInGeofence(location.Latitude, location.Longitude, geofenceCenterLat, geofenceCenterLon, radiusMeters) {
 		log.Printf("Vehicle %s entered geofence!", location.VehicleID)
+
+		eventPayload :=
+			models.GeofenceEvent{
+				VehicleID: location.VehicleID,
+				Event:     "geofence_entry",
+				Location: models.Location{
+					Latitude:  location.Latitude,
+					Longitude: location.Longitude,
+				},
+				Timestamp: location.Timestamp,
+			}
+
+		if s.rabbitmqService != nil {
+			if err := s.rabbitmqService.PublishGeofenceEvent(eventPayload); err != nil {
+				log.Printf("Error publishing geofence event to RabbitMQ: %v", err)
+			}
+		} else {
+			log.Println("RabbitMQService not initialized, cannot publish geofence event.")
+		}
 	}
 }
 
@@ -90,5 +109,4 @@ func (s *MQTTService) SubscribeToLocationTopic() {
 		log.Fatalf("Failed to subscribe to topic: %v", token.Error())
 	}
 	log.Printf("Subscribed to MQTT topic: %s", topic)
-
 }

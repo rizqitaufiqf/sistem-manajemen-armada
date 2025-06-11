@@ -1,9 +1,11 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"sistem-manajemen-armada/internal/config"
+	"sistem-manajemen-armada/internal/models"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -76,6 +78,49 @@ func NewRabbitMQService(cfg *config.AppConfig) (*RabbitMQService, error) {
 	}
 
 	return &RabbitMQService{conn: conn, channel: channel}, nil
+}
+
+func (s *RabbitMQService) PublishGeofenceEvent(event models.GeofenceEvent) error {
+	body, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("failed to marshal geofence event: %w", err)
+	}
+
+	err = s.channel.Publish(
+		"armada.events",  // exchange
+		"geofence_entry", // routing key
+		false,            // mandatory
+		false,            // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        body,
+		})
+	if err != nil {
+		return fmt.Errorf("failed to publish message: %w", err)
+	}
+	log.Printf("Published geofence event for vehicle %s", event.VehicleID)
+	return nil
+}
+
+func (s *RabbitMQService) StartGeofenceWorker() {
+	messages, err := s.channel.Consume(
+		"geofence_alerts", // queue
+		"",                // consumer
+		true,              // auto-ack
+		false,             // exclusive
+		false,             // no-local
+		false,             // no-wait
+		nil,               // args
+	)
+	if err != nil {
+		log.Fatalf("Failed to register a consumer: %v", err)
+	}
+
+	go func() {
+		for d := range messages {
+			log.Printf("Received a geofence alert message: %s", d.Body)
+		}
+	}()
 }
 
 func (s *RabbitMQService) Close() {

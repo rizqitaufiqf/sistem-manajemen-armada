@@ -18,6 +18,9 @@ func main() {
 	}
 	defer rabbitMQService.Close()
 
+	// Start Geofence Worker
+	rabbitMQService.StartGeofenceWorker()
+
 	log.Println("RabbitMQ Worker started. Waiting for messages...")
 	// Keep the worker running indefinitely
 	select {}
