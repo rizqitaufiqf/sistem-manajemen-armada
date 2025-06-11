@@ -16,7 +16,7 @@ cd sistem-manajemen-armada
 ```bash
 docker-compose up --build -d
 ```
-3.  **Run MQTT Publisher (Optional, for generating mock data):**
+3.  **Run MQTT Publisher:**
 You can run the MQTT publisher from within the container or from your local host. 
 > **Note:** For default, MQTT Publisher is already running in your docker app.
 
